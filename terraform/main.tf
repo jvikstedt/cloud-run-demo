@@ -36,6 +36,22 @@ resource "google_artifact_registry_repository" "app" {
   format        = "DOCKER"
 }
 
+# Enable Firestore API
+resource "google_project_service" "firestore" {
+  service            = "firestore.googleapis.com"
+  disable_on_destroy = false
+}
+
+# Create Firestore database in native mode
+resource "google_firestore_database" "database" {
+  project     = var.project_id
+  name        = "(default)"
+  location_id = var.firestore_location
+  type        = "FIRESTORE_NATIVE"
+  depends_on  = [google_project_service.firestore]
+}
+
+# Setup Cloud Run
 resource "google_cloud_run_v2_service" "app" {
   name     = var.repository_name
   location = var.region
@@ -45,12 +61,19 @@ resource "google_cloud_run_v2_service" "app" {
   template {
     containers {
       image = "${var.region}-docker.pkg.dev/${var.project_id}/${var.repository_name}/app:${var.app_image_tag}"
+
+      env {
+        name  = "GCP_PROJECT_ID"
+        value = var.project_id
+      }
     }
   }
 
   scaling {
     min_instance_count = 0
   }
+
+  depends_on = [google_firestore_database.database]
 }
 
 # Allow unauthenticated access to Cloud Run service

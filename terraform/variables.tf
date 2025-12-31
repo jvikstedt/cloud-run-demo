@@ -20,3 +20,9 @@ variable "app_image_tag" {
   type        = string
   default     = "latest"
 }
+
+variable "firestore_location" {
+  description = "Firestore database location"
+  type        = string
+  default     = "europe-north1"
+}
