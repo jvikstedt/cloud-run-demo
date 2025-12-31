@@ -26,3 +26,8 @@ variable "firestore_location" {
   type        = string
   default     = "europe-north1"
 }
+
+variable "email" {
+  description = "Email to send notifications to"
+  type        = string
+}
