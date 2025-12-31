@@ -1,9 +1,26 @@
 terraform {
+  backend "gcs" {} # Empty - config provided externally
+
   required_providers {
     google = {
       source  = "hashicorp/google"
       version = "6.8.0"
     }
+  }
+}
+
+resource "google_storage_bucket" "terraform_state" {
+  name     = "${var.project_id}-terraform-state"
+  location = var.region
+
+  uniform_bucket_level_access = true
+
+  versioning {
+    enabled = true
+  }
+
+  lifecycle {
+    prevent_destroy = true
   }
 }
 
@@ -29,6 +46,10 @@ resource "google_cloud_run_v2_service" "app" {
     containers {
       image = "${var.region}-docker.pkg.dev/${var.project_id}/${var.repository_name}/app:${var.app_image_tag}"
     }
+  }
+
+  scaling {
+    min_instance_count = 0
   }
 }
 
