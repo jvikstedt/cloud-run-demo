@@ -1,36 +1,64 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Cloud Run Demo
 
-## Getting Started
+A learning project to explore and experiment with Google Cloud Run, Firebase, Terraform, Docker, GCS, Cloud Monitoring and Next.js.
 
-First, run the development server:
+## Local Development
+
+1. Create `.env.local` file with required environment variables
+2. Install dependencies and run:
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000 to view the app.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Deployment
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Deploy to Google Cloud Run:
 
-## Learn More
+1. Create `terraform/terraform.tfvars`:
 
-To learn more about Next.js, take a look at the following resources:
+```hcl
+project_id = "your-gcp-project-id"
+region     = "europe-north1"
+email      = "your-email@example.com"
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+2. Create `terraform/backend.tfvars`:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```hcl
+bucket = "your-terraform-state-bucket"
+prefix = "terraform/state"
+```
 
-## Deploy on Vercel
+3. Create Artifact Registry repository first:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+cd terraform
+terraform init -backend-config=backend.tfvars
+terraform apply -target=google_artifact_registry_repository.app
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+4. Build and push Docker image:
+
+```bash
+# Set your variables
+PROJECT_ID="your-gcp-project-id"
+REGION="europe-north1"
+REPOSITORY="cloud-run-demo"
+IMAGE_TAG="latest"
+
+# Build and push
+IMAGE="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPOSITORY}/app:${IMAGE_TAG}"
+docker build -t ${IMAGE} .
+docker push ${IMAGE}
+```
+
+5. Deploy remaining infrastructure with Terraform:
+
+```bash
+cd terraform
+terraform apply
+```
