@@ -5,9 +5,9 @@ export async function GET() {
   try {
     const snapshot = await db.collection('items').limit(10).get();
 
-    const items = snapshot.docs.map(doc => ({
+    const items = snapshot.docs.map((doc) => ({
       id: doc.id,
-      ...doc.data()
+      ...doc.data(),
     }));
 
     return NextResponse.json({ items });
@@ -27,10 +27,7 @@ export async function POST(request: NextRequest) {
     const { name, description } = body;
 
     if (!name) {
-      return NextResponse.json(
-        { error: 'Name is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Name is required' }, { status: 400 });
     }
 
     const docRef = await db.collection('items').add({
@@ -40,10 +37,13 @@ export async function POST(request: NextRequest) {
       updatedAt: new Date().toISOString(),
     });
 
-    return NextResponse.json({
-      id: docRef.id,
-      message: 'Item created successfully'
-    }, { status: 201 });
+    return NextResponse.json(
+      {
+        id: docRef.id,
+        message: 'Item created successfully',
+      },
+      { status: 201 }
+    );
   } catch (error) {
     console.error('Error creating item:', error);
 

@@ -18,7 +18,7 @@ export async function GET() {
     return NextResponse.json(
       {
         status: 'unhealthy',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 503 }
     );
